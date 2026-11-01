@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="theme-color" content="#14251e"/>
+<title>IOLA | Interactive Wedding Invitation</title>
+<style>
+:root{--cream:#f7f0e3;--gold:#c9a66b;--deep:#14251e;--ink:#28352c;--glass:rgba(17,28,23,.78);--line:rgba(255,255,255,.22)}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#15251e;color:white}button,input,textarea,select{font:inherit}button{cursor:pointer;border:0}
+#game{position:fixed;inset:0}canvas{display:block;width:100%;height:100%;outline:none}
+.overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:18px;background:linear-gradient(120deg,rgba(8,18,14,.78),rgba(8,18,14,.35));backdrop-filter:blur(5px);z-index:5;overflow:auto}
+.panel{width:min(780px,100%);max-height:min(92dvh,900px);overflow:auto;border:1px solid rgba(255,255,255,.22);border-radius:24px;background:linear-gradient(145deg,rgba(247,240,227,.97),rgba(234,222,198,.97));color:var(--ink);box-shadow:0 30px 100px #0007}
+.panel-inner{padding:clamp(20px,4vw,38px)}.eyebrow{text-transform:uppercase;letter-spacing:.2em;font-size:10px;font-weight:800;color:#96754a}.serif{font-family:Georgia,"Times New Roman",serif;font-weight:400}.hero-title{font-size:clamp(34px,7vw,68px);line-height:.98;margin:12px 0}.muted{color:#68756a;line-height:1.55}.gold-btn,.ghost-btn{border-radius:999px;padding:13px 20px;font-weight:750;transition:.2s}.gold-btn{background:linear-gradient(135deg,#dfc18b,#b68b4e);color:#1f291f;box-shadow:0 8px 24px #9a774333}.gold-btn:hover{transform:translateY(-1px);filter:brightness(1.04)}.ghost-btn{border:1px solid #b9aa8f;background:#ffffff80;color:#384337}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}.hidden{display:none!important}
+#startScreen{background:linear-gradient(0deg,rgba(7,20,14,.84),rgba(7,20,14,.24)),radial-gradient(ellipse at center,#7b8760 0,#1b3426 65%,#101d17 100%)}
+.start-card{width:min(680px,100%);text-align:center;color:#fff;padding:20px}.start-card .eyebrow{color:#e7d2a8}.start-card .hero-title{font-size:clamp(42px,10vw,84px);text-shadow:0 5px 30px #0008}.start-card p{max-width:450px;margin:14px auto 26px;color:#f4efe4;line-height:1.7}
+#creator .panel{width:min(880px,100%)}.creator-grid{display:grid;grid-template-columns:minmax(180px,.9fr) minmax(220px,1.1fr);gap:22px;align-items:center}.avatar-preview{min-height:290px;border-radius:18px;background:radial-gradient(circle at 50% 25%,#f7dfb6,#9d9a7e 60%,#526b55);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}.avatar-preview .avatar{width:115px;height:210px;position:relative}.avatar .head{position:absolute;top:10px;left:31px;width:54px;height:65px;border-radius:46% 46% 42% 42%;background:var(--skin,#d7a57f);box-shadow:inset -7px -2px 0 #0001}.avatar .hair{position:absolute;z-index:2;top:5px;left:27px;width:62px;height:31px;border-radius:55% 55% 25% 25%;background:var(--hair,#30231d)}.avatar .body{position:absolute;top:77px;left:15px;width:86px;height:100px;border-radius:28px 28px 10px 10px;background:var(--outfit,#253b32);clip-path:polygon(18% 0,82% 0,100% 100%,0 100%)}.avatar .neck{position:absolute;top:65px;left:49px;width:18px;height:20px;background:var(--skin,#d7a57f)}.avatar .legs{position:absolute;top:166px;left:29px;width:22px;height:42px;background:#292c29;box-shadow:34px 0 #292c29}.avatar:after{content:"";position:absolute;top:34px;left:34px;width:48px;height:3px;border-radius:100%;background:#ffffff33}
+.field{margin:0 0 16px}.field label{display:block;font-size:12px;font-weight:800;margin-bottom:8px;color:#526052}.choices{display:flex;gap:8px;flex-wrap:wrap}.swatch{width:30px;height:30px;border-radius:50%;border:2px solid #ffffff;box-shadow:0 0 0 1px #aaa;position:relative}.swatch[aria-pressed=true]{box-shadow:0 0 0 2px #9c743d}.choice{border:1px solid #d5c8b0;border-radius:12px;padding:9px 12px;background:#fff9;color:#3e4b3f;font-size:12px}.choice[aria-pressed=true]{background:#263b2f;color:white;border-color:#263b2f}.helper{font-size:11px;color:#7c8478;margin-top:10px}
+#hud{position:fixed;inset:0;pointer-events:none;z-index:2}.hud-top{position:absolute;left:14px;right:14px;top:14px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.pill{pointer-events:auto;background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(10px);border-radius:999px;padding:10px 13px;font-size:11px;color:white;box-shadow:0 8px 30px #0002}.brand{font-weight:900;letter-spacing:.18em;color:#e7d0a4}.hud-help{max-width:220px;line-height:1.4;text-align:right}.objective{position:absolute;left:14px;top:70px;max-width:240px;background:var(--glass);border:1px solid var(--line);border-radius:15px;padding:12px 14px;font-size:12px;line-height:1.6;backdrop-filter:blur(10px)}.objective strong{display:block;color:#e8d1a4;margin-bottom:3px}
+#joystick{position:absolute;left:22px;bottom:28px;width:116px;height:116px;border:1px solid #ffffff55;border-radius:50%;background:#101d1766;pointer-events:auto;touch-action:none;display:none;backdrop-filter:blur(5px)}#stick{position:absolute;left:33px;top:33px;width:48px;height:48px;border-radius:50%;background:#f7f0e3cc;border:1px solid white;box-shadow:0 4px 15px #0004}
+#interact{position:absolute;right:22px;bottom:35px;pointer-events:auto;display:none;min-width:116px}.hint{position:absolute;bottom:15px;left:50%;transform:translateX(-50%);font-size:11px;color:#fff;background:#0b1712a8;border:1px solid #ffffff22;border-radius:999px;padding:8px 13px;white-space:nowrap}
+#dialog{z-index:6}.dialog-box{width:min(650px,100%);border-radius:22px;background:rgba(249,244,234,.97);color:#29372d;padding:24px;box-shadow:0 20px 70px #0005}.speaker{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#a17d49;font-weight:900}.dialog-text{font-family:Georgia,serif;font-size:clamp(18px,3vw,25px);line-height:1.45;margin:13px 0 20px}
+#invitation{z-index:7}.invite-layout{display:grid;grid-template-columns:1fr 1fr;gap:18px}.invite-hero{background:linear-gradient(160deg,#d6c6a5,#f8f0df 60%,#d2bd91);border-radius:18px;min-height:230px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px;color:#344334;border:1px solid #d6c5a4}.invite-hero .couple{font-size:clamp(32px,5vw,50px);line-height:1.1;margin:14px 0}.invite-section{border:1px solid #dfd4bf;border-radius:15px;padding:15px;margin-bottom:12px;background:#fff9}.invite-section h3{font:italic 20px Georgia;margin:0 0 9px;color:#82613c}.invite-section p{font-size:12px;line-height:1.55;margin:4px 0}.invite-section input,.invite-section textarea,.invite-section select{width:100%;border:1px solid #d7cbb5;border-radius:10px;background:white;padding:10px;color:#29372d;margin-top:7px}.invite-section textarea{min-height:68px;resize:vertical}.countdown{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px}.countdown div{text-align:center;background:#f3ead9;border-radius:10px;padding:9px 3px}.countdown b{display:block;font-size:19px}.countdown span{font-size:9px;color:#6b7567}.gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.photo-placeholder{aspect-ratio:1;border-radius:8px;background:linear-gradient(135deg,#b9c6a9,#e6d7b6 55%,#9eae91);display:flex;align-items:center;justify-content:center;font-size:10px;color:#4c604a}.qr-wrap{display:flex;align-items:center;gap:15px}.qr-wrap canvas{width:100px!important;height:100px!important;background:white;padding:5px;border-radius:8px}.fineprint{font-size:10px;color:#7b8477;line-height:1.5}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:10;background:#14251e;color:white;border:1px solid #ffffff30;padding:12px 17px;border-radius:999px;font-size:12px;box-shadow:0 8px 25px #0003}
+@media(max-width:650px){.creator-grid{grid-template-columns:1fr}.avatar-preview{min-height:180px}.avatar-preview .avatar{transform:scale(.78);transform-origin:center}.creator-grid .field{margin-bottom:12px}.panel-inner{padding:20px}.invite-layout{grid-template-columns:1fr}.invite-hero{min-height:185px}.hud-help{display:none}.objective{top:62px;max-width:185px;font-size:10px}.hint{bottom:155px;font-size:10px}.pill{font-size:10px;padding:9px 11px}#joystick{display:block}#interact{display:block}.overlay{padding:10px}.panel{border-radius:18px;max-height:94dvh}}
+@media(min-width:651px){#joystick{display:none!important}#interact{display:block}.hint{bottom:18px}}
+</style>
+</head>
+<body>
+<div id="game"></div>
+<div id="startScreen" class="overlay">
+ <div class="start-card">
+  <div class="eyebrow">IOLA · An Interactive Wedding Experience</div>
+  <h1 class="hero-title serif">A Garden<br><em>Love Story</em></h1>
+  <p>Perjalanan kecil menantimu di taman tempat dua hati merayakan awal cerita baru. Buat karaktermu, jelajahi pesta, lalu temui kedua mempelai.</p>
+  <button class="gold-btn" id="startBtn">Mulai Perjalanan&nbsp; ↗</button>
+  <div class="helper" style="color:#eee2c9;margin-top:16px">Prototype interaktif · tanpa instalasi aplikasi</div>
+ </div>
+</div>
+<div id="creator" class="overlay hidden">
+ <div class="panel"><div class="panel-inner">
+  <div class="eyebrow">01 / Character Studio</div><h2 class="hero-title serif" style="font-size:clamp(30px,5vw,46px)">Siapkan penampilanmu</h2>
+  <p class="muted">Pilih tampilan karakter sebelum memasuki garden party.</p>
+  <div class="creator-grid">
+   <div class="avatar-preview"><div class="avatar" id="avatarPreview"><div class="hair"></div><div class="head"></div><div class="neck"></div><div class="body"></div><div class="legs"></div></div></div>
+   <div>
+    <div class="field"><label>WARNA KULIT</label><div class="choices" id="skinChoices">
+     <button class="swatch" style="background:#f0c8a4" data-value="#f0c8a4" aria-label="Kulit terang"></button><button class="swatch" style="background:#d7a57f" data-value="#d7a57f" aria-label="Kulit medium"></button><button class="swatch" style="background:#ad7657" data-value="#ad7657" aria-label="Kulit sawo matang"></button><button class="swatch" style="background:#704a37" data-value="#704a37" aria-label="Kulit gelap"></button>
+    </div></div>
+    <div class="field"><label>RAMBUT</label><div class="choices" id="hairChoices"><button class="choice" data-value="#30231d" aria-pressed="true">Espresso</button><button class="choice" data-value="#6e4930">Chestnut</button><button class="choice" data-value="#1d2426">Midnight</button><button class="choice" data-value="#b78b54">Honey</button></div></div>
+    <div class="field"><label>GAYA PAKAIAN PESTA</label><div class="choices" id="outfitChoices"><button class="choice" data-value="#253b32" aria-pressed="true">Forest tuxedo</button><button class="choice" data-value="#d6c6a5">Champagne suit</button><button class="choice" data-value="#26304a">Midnight blue</button><button class="choice" data-value="#7b3f43">Burgundy</button></div></div>
+    <div class="field"><label>GAYA RAMBUT</label><div class="choices" id="styleChoices"><button class="choice" data-value="classic" aria-pressed="true">Classic</button><button class="choice" data-value="soft">Soft wave</button><button class="choice" data-value="short">Short</button></div></div>
+    <div class="helper">Pilihan karakter ini merupakan versi demo. Variasi model wajah/pakaian 3D detail dapat ditambahkan pada tahap produksi.</div>
+   </div>
+  </div>
+  <div class="actions"><button class="gold-btn" id="enterGarden">Masuk ke Pesta →</button><button class="ghost-btn" id="backStart">Kembali</button></div>
+ </div></div>
+</div>
+<div id="hud" class="hidden">
+ <div class="hud-top"><div class="pill brand">IOLA <span style="color:#fff;font-weight:500;letter-spacing:0"> / GARDEN PARTY</span></div><div class="pill hud-help">Gerakkan karakter menuju pelaminan.<br>PC: WASD / tombol panah · HP: joystick</div></div>
+ <div class="objective"><strong>✦ MISI: Temui kedua mempelai</strong><span id="missionText">Jelajahi taman dan dekati pasangan pengantin.</span></div>
+ <div id="joystick"><div id="stick"></div></div>
+ <button id="interact" class="gold-btn">♡ Sapa Pengantin</button>
+ <div class="hint" id="hint">Jelajahi taman • Dekati pengantin untuk berinteraksi</div>
+</div>
+<div id="dialog" class="overlay hidden"><div class="dialog-box"><div class="speaker" id="speaker">RIO & DELA</div><div class="dialog-text" id="dialogText">Halo! Senang sekali kamu bisa hadir di hari bahagia kami.</div><div class="actions"><button class="gold-btn" id="dialogNext">Lanjutkan →</button><button class="ghost-btn" id="dialogSkip">Lewati dialog</button></div></div></div>
+<div id="invitation" class="overlay hidden"><div class="panel"><div class="panel-inner">
+ <div class="eyebrow">The official invitation · IOLA</div>
+ <div class="invite-layout" style="margin-top:14px">
+  <div>
+   <div class="invite-hero"><div class="eyebrow">Together with our families</div><div class="couple serif">Rio <span style="font-size:20px">&</span> Dela</div><div class="serif" style="font-style:italic">invite you to celebrate our wedding</div><div style="font-size:11px;margin-top:18px;letter-spacing:.12em">SABTU, 9 JANUARI 2027 · 16.00 WIB</div></div>
+   <div class="invite-section" style="margin-top:12px"><h3>Dengan penuh rasa syukur</h3><p>Kami mengundang <b id="guestNameInline">Tamu Undangan</b> untuk hadir dan menjadi bagian dari hari istimewa kami.</p><p class="fineprint">Nama tamu dipersonalisasi dari link undangan pada integrasi dashboard nanti.</p></div>
+   <div class="invite-section"><h3>Menuju hari bahagia</h3><div class="countdown" id="countdown"><div><b>—</b><span>HARI</span></div><div><b>—</b><span>JAM</span></div><div><b>—</b><span>MENIT</span></div><div><b>—</b><span>DETIK</span></div></div></div>
+   <div class="invite-section"><h3>Detail acara</h3><p><b>Akad & Resepsi</b><br>Sabtu, 9 Januari 2027 · 16.00 WIB – selesai</p><p><b>The Botanical Garden</b><br>Jl. Raya Garden No. 88, Jakarta Selatan</p><button class="ghost-btn" id="mapBtn" style="margin-top:8px;padding:9px 13px">⌖ Lihat Lokasi</button></div>
+  </div>
+  <div>
+   <div class="invite-section"><h3>Our moments</h3><p class="muted">Galeri foto (opsional, maksimal 6 foto)</p><div class="gallery"><div class="photo-placeholder">Photo 01</div><div class="photo-placeholder">Photo 02</div><div class="photo-placeholder">Photo 03</div><div class="photo-placeholder">Photo 04</div><div class="photo-placeholder">Photo 05</div><div class="photo-placeholder">Photo 06</div></div><p class="fineprint" style="margin-top:8px">Placeholder demo; foto dapat diatur oleh admin.</p></div>
+   <div class="invite-section"><h3>Wedding gift</h3><p>Doa restu Anda adalah hadiah terindah bagi kami. Jika berkenan, hadiah dapat dikirimkan melalui:</p><p><b>BCA · 1234 5678 90</b><br>a.n. Rio Pratama</p><p class="fineprint">Informasi rekening opsional dan dapat disembunyikan.</p></div>
+   <div class="invite-section"><h3>Konfirmasi kehadiran</h3><p>Apakah kamu akan hadir di acara kami?</p><select id="rsvp"><option value="">Pilih jawaban</option><option value="Hadir">Hadir</option><option value="Tidak hadir">Tidak hadir</option><option value="Belum pasti">Belum pasti</option></select><label style="display:block;font-size:11px;margin-top:10px">Jumlah orang</label><select id="partySize"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select><label style="display:block;font-size:11px;margin-top:10px">Ucapan & doa (opsional)</label><textarea id="wish" placeholder="Tulis doa terbaik untuk kedua mempelai..."></textarea><button class="gold-btn" id="saveRsvp" style="margin-top:10px;width:100%">Simpan RSVP & Ucapan</button></div>
+   <div class="invite-section"><h3>Your wedding entry pass</h3><div class="qr-wrap"><div id="qr"></div><div><b id="qrGuestName">Tamu Undangan</b><p class="fineprint">Tunjukkan kode ini kepada usher saat tiba di venue. Kode ini masih demo, belum tersimpan di server.</p><span class="eyebrow">IOLA · GUEST PASS</span></div></div></div>
+  </div>
+ </div>
+ <div class="actions"><button class="gold-btn" id="closeInvitation">Kembali ke Garden Party</button><button class="ghost-btn" id="downloadPass">Cetak / Simpan Pass</button></div>
+ <p class="fineprint" style="margin-top:14px">Demo concept only. Nama mempelai, rekening, lokasi, RSVP, dan QR masih contoh; jangan digunakan untuk acara sungguhan sebelum terhubung ke backend.</p>
+</div></div></div>
+<div id="toast" class="toast hidden"></div>
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+const $=id=>document.getElementById(id);
+let scene,camera,renderer,clock,player,playerParts={},couple=[],people=[],interactables=[],activeTarget=null,keys={},moveInput={x:0,y:0},nearCouple=false,dialogStep=0,dialogLines=[],gameStarted=false;
+const state={skin:'#d7a57f',hair:'#30231d',outfit:'#253b32',hairStyle:'classic',guestName:new URLSearchParams(location.search).get('guest')||'Tamu Undangan'};
+$('guestNameInline').textContent=state.guestName;$('qrGuestName').textContent=state.guestName;
+function toast(msg){$('toast').textContent=msg;$('toast').classList.remove('hidden');setTimeout(()=>$('toast').classList.add('hidden'),2600)}
+function mat(color,roughness=.8){return new THREE.MeshStandardMaterial({color,roughness})}
+function box(w,h,d,color,x,y,z, parent=scene, opts={}){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat(color));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m}
+function sphere(r,color,x,y,z,parent=scene,scale=[1,1,1]){const m=new THREE.Mesh(new THREE.SphereGeometry(r,12,10),mat(color));m.position.set(x,y,z);m.scale.set(...scale);m.castShadow=true;parent.add(m);return m}
+function cylinder(rt,rb,h,color,x,y,z,parent=scene,seg=10){const m=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,seg),mat(color));m.position.set(x,y,z);m.castShadow=true;parent.add(m);return m}
+function makePerson(x,z,opts={}) {
+ const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);people.push(g);
+ const skin=opts.skin||'#d7a57f', hair=opts.hair||'#30231d', outfit=opts.outfit||'#34463a';
+ const limbMat=mat(skin), legMat=mat(opts.legColor||'#292b28');
+ const torsoGroup=new THREE.Group();torsoGroup.position.y=1.02;g.add(torsoGroup);
+ // Head, hair and neck
+ sphere(.235,skin,0,1.55,0,g,[.82,1,.78]);
+ sphere(.25,hair,0,1.7,-.035,g,[.98,.48,.84]);
+ if(opts.longHair){sphere(.235,hair,0,1.48,-.08,g,[1.02,1.15,.72]);}
+ if(opts.veil){const v=new THREE.Mesh(new THREE.ConeGeometry(.32,.72,10,1,true),new THREE.MeshStandardMaterial({color:'#fff8ec',transparent:true,opacity:.45,side:THREE.DoubleSide}));v.position.set(0,1.38,-.13);g.add(v);}
+ cylinder(.085,.09,.17,skin,0,1.29,0,g);
+ // Body silhouette; wedding dress gets a flared, elegant skirt.
+ if(opts.dress){
+   const skirt=new THREE.Mesh(new THREE.CylinderGeometry(.63,.34,.95,16,1),mat(opts.outfit||'#f1e4d0'));skirt.position.y=.69;skirt.castShadow=true;skirt.receiveShadow=true;g.add(skirt);
+   const bodice=new THREE.Mesh(new THREE.CylinderGeometry(.19,.27,.47,10),mat(opts.outfit||'#f1e4d0'));bodice.position.y=1.31;bodice.castShadow=true;g.add(bodice);
+   // Subtle gown embellishment: pearls / embroidery points.
+   for(let row=0;row<4;row++)for(let col=0;col<5;col++){const px=(col-2)*.12, py=.42+row*.17, pz=.34-Math.abs(col-2)*.035;sphere(.018,opts.detail||'#d7bd88',px,py,pz,g,[1,.8,.55]);}
+ } else {
+   const torso=new THREE.Mesh(new THREE.CylinderGeometry(.22,.31,.63,10),mat(outfit));torso.position.y=1.0;torso.castShadow=true;torso.receiveShadow=true;g.add(torso);
+   if(opts.formal){
+    // Shirt front, lapels and bow tie create a dressed-up groom/guest silhouette.
+    box(.17,.4,.025,opts.shirt||'#f3eee3',0,1.02,.23,g);
+    const lapelL=new THREE.Mesh(new THREE.BufferGeometry(),mat(opts.detail||'#d6c29c'));
+    box(.065,.31,.028,opts.detail||'#d6c29c',-.075,1.06,.25,g).rotation.z=-.22;
+    box(.065,.31,.028,opts.detail||'#d6c29c',.075,1.06,.25,g).rotation.z=.22;
+    sphere(.055,opts.detail||'#d6c29c',0,1.27,.25,g,[1.2,.6,.7]);
+   }
+ }
+ // Separate articulated limbs; pivots swing during walking to avoid a floating/gliding look.
+ const legPivots=[];
+ for(const side of [-1,1]){
+   const hip=new THREE.Group();hip.position.set(side*.13,.48,0);g.add(hip);
+   const leg=cylinder(.085,.105,.48,opts.legColor||'#282a27',0,-.22,0,hip,10);leg.position.y=-.22;
+   const foot=box(.13,.075,.25,opts.shoeColor||'#20231f',0,-.47,.055,hip);foot.position.z=.06;
+   legPivots.push(hip);
+ }
+ const armPivots=[];
+ for(const side of [-1,1]){
+   const arm=new THREE.Group();arm.position.set(side*.29,1.17,0);g.add(arm);
+   const sleeve=cylinder(.075,.095,.42,opts.sleeve||outfit,0,-.2,0,arm,10);sleeve.position.y=-.2;
+   sphere(.075,skin,0,-.43,.015,arm,[.85,1,.75]);
+   armPivots.push(arm);
+ }
+ // Accessory: boutonniere for groom / guests; tiara for bride.
+ if(opts.boutonniere)sphere(.045,'#e7d6a8',-.14,1.15,.22,g,[1,.8,.6]);
+ if(opts.tiara){for(let i=0;i<5;i++)sphere(.025,'#e7d6a8',(i-2)*.07,1.91,-.015,g,[1,1.3,1]);}
+ g.userData.legPivots=legPivots;g.userData.armPivots=armPivots;g.userData.walkPhase=Math.random()*Math.PI*2;g.userData.isMoving=false;
+ return g;
+}
+function createWorld(){
+ people=[];interactables=[];scene=new THREE.Scene();scene.background=new THREE.Color('#9aa88a');scene.fog=new THREE.Fog('#a7b49a',22,75);
+ camera=new THREE.PerspectiveCamera(55,innerWidth/innerHeight,.1,120);
+ renderer=new THREE.WebGLRenderer({antialias:innerWidth>700,powerPreference:'low-power',alpha:false});
+ const isMobile=matchMedia('(max-width: 700px)').matches || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+ renderer.setPixelRatio(Math.min(devicePixelRatio,isMobile?1.0:1.35));renderer.setSize(innerWidth,innerHeight);
+ renderer.shadowMap.enabled=!isMobile;renderer.shadowMap.type=THREE.PCFShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.1;
+ $('game').innerHTML='';$('game').appendChild(renderer.domElement);
+ scene.add(new THREE.HemisphereLight('#fff1d5','#536a4f',2.1));
+ const sun=new THREE.DirectionalLight('#ffe0ae',3.0);sun.position.set(-10,18,8);sun.castShadow=!isMobile;sun.shadow.mapSize.set(isMobile?256:512,isMobile?256:512);sun.shadow.camera.left=-25;sun.shadow.camera.right=25;sun.shadow.camera.top=25;sun.shadow.camera.bottom=-25;scene.add(sun);
+ // ground
+ const ground=new THREE.Mesh(new THREE.PlaneGeometry(100,100),mat('#71845e'));ground.rotation.x=-Math.PI/2;ground.position.y=-.04;ground.receiveShadow=true;scene.add(ground);
+ // lawns patches
+ for(let i=0;i<22;i++){const x=(Math.random()-.5)*45,z=(Math.random()-.5)*45;const r=.3+Math.random()*.8;const patch=new THREE.Mesh(new THREE.CircleGeometry(r,8),mat(i%2?'#788b61':'#829267'));patch.rotation.x=-Math.PI/2;patch.position.set(x,.005,z);scene.add(patch)}
+ // central stone path from spawn to couple
+ for(let i=0;i<17;i++){const z=8-i*.9;const slab=box(3.8,.08,.78,i%2?'#c9bda4':'#d8cbb2',0,.05,z);slab.material.roughness=1;}
+ // tables / welcome stand
+ for(const [x,z] of [[-5,1],[5,0],[-6,-4],[6,-4]]){
+  cylinder(.65,.65,.14,'#f4ead8',x,.85,z,scene,16);
+  cylinder(.08,.08,.8,'#6b5740',x,.43,z,scene,10);
+  for(let a=0;a<5;a++){const ang=a*Math.PI*2/5;sphere(.12,['#f4e8d1','#e6c7c2','#fff8e8'][a%3],x+Math.cos(ang)*.25,1.02,z+Math.sin(ang)*.25,scene,[1,.7,1]);}
+ }
+ // canopy / wedding arch at couple destination
+ for(const x of [-2.2,2.2]){cylinder(.09,.12,4.3,'#e5d8bf',x,2.15,-8,scene,12);sphere(.16,'#d9bd8d',x,4.3,-8)}
+ const beam=box(4.6,.16,.18,'#e4d7bf',0,4.25,-8);
+ for(let i=0;i<25;i++){const x=-2.2+Math.random()*4.4,y=3.55+Math.random()*.6,z=-8+(Math.random()-.5)*.25;sphere(.16,['#f8efe0','#ead0cb','#d8dfc6'][i%3],x,y,z,scene,[1,.8,1]);}
+ // layered floral aisle and lanterns for a more luxurious garden-party atmosphere
+ for(let side of [-1,1]) for(let i=0;i<8;i++){
+  const x=side*(2.5+Math.random()*.65), z=6-i*1.75;
+  const pot=cylinder(.18,.22,.28,'#b8a27c',x,.16,z,scene,10);
+  for(let j=0;j<7;j++){const a=j*Math.PI*2/7;sphere(.12,['#fff2df','#e9c9c8','#e2d6b9'][j%3],x+Math.cos(a)*.18,.36+Math.random()*.2,z+Math.sin(a)*.18,scene,[1,.8,1]);}
+  const lantern=box(.24,.36,.24,'#d4b985',x,.45,z);const light=new THREE.PointLight('#ffca7b',.55,3);light.position.set(x,.75,z);scene.add(light);
+ }
+ // warm festoon lights
+ for(let side of [-1,1]) for(let i=0;i<9;i++){const x=side*(2.7+i*.42),z=7-i*1.8;sphere(.065,'#ffe6a3',x,4.6-Math.abs(i-4)*.12,z,scene);const glow=new THREE.PointLight('#ffcf82',.45,3);glow.position.set(x,4.5-Math.abs(i-4)*.12,z);scene.add(glow)}
+ // trees and flower beds
+ for(let i=0;i<22;i++){
+  const side=Math.random()<.5?-1:1,x=side*(5+Math.random()*12),z=-15+Math.random()*31,h=2.5+Math.random()*2.5;
+  cylinder(.12,.22,h*.45,'#65523b',x,h*.22,z,scene,7);
+  sphere(.8+Math.random()*.6,['#536d4e','#647b54','#73845b'][i%3],x,h*.67,z,scene,[1,1.1,1]);
+  for(let j=0;j<3;j++)sphere(.14,['#f2dfc0','#e5c4bb','#fff4df'][j],x+(Math.random()-.5)*1.2,h*.7+(Math.random()-.5)*.7,z+(Math.random()-.5)*1.2,scene,[1,.8,1]);
+ }
+ // NPCs around garden
+ const outfits=['#7b8c75','#b7a1a0','#d8c9aa','#405b58','#8b6658','#d8d9ce'];
+ const guestNPCs=[
+  {name:'Nadia · Sahabat Mempelai',x:-4.1,z:3.2,outfit:'#b7a1a0',lines:[
+   ['NADIA · SAHABAT','Hai, '+state.guestName+'! Aku Nadia, sahabat Dela. Garden party-nya cantik banget, ya?'],
+   ['NADIA · SAHABAT','Katanya setelah ini ada sesi foto di dekat bunga putih. Jangan lupa abadikan momenmu!'],
+   ['NADIA · SAHABAT','Oh ya, jangan lupa temui Rio dan Dela di pelaminan. Mereka sudah menunggu untuk menyapamu.']]},
+  {name:'Arman · Tamu Keluarga',x:4.0,z:2.4,outfit:'#405b58',lines:[
+   ['ARMAN · TAMU KELUARGA','Halo! Selamat datang. Aku Arman, sepupu Rio. Perjalanan ke sini lancar?'],
+   ['ARMAN · TAMU KELUARGA','Area taman ini memang jadi tempat favorit keluarga untuk berkumpul. Suasananya hangat sekali.'],
+   ['ARMAN · TAMU KELUARGA','Kalau sudah, silakan menuju pelaminan. Ada kejutan kecil dari kedua mempelai.']]},
+  {name:'Maya · Bridesmaid',x:3.5,z:-1.0,outfit:'#d8c9aa',lines:[
+   ['MAYA · BRIDESMAID','Hai! Aku Maya, bridesmaid Dela. Kamu bisa menikmati area taman dulu sebelum bertemu pengantin.'],
+   ['MAYA · BRIDESMAID','Kalau ingin foto, spot bunga di sebelah kanan arch cantik untuk latar foto.'],
+   ['MAYA · BRIDESMAID','Selamat menikmati pestanya, ya. Semoga hari ini jadi kenangan manis!']]},
+  {name:'Dimas · Teman Kuliah',x:-3.5,z:-2.2,outfit:'#8b6658',lines:[
+   ['DIMAS · TEMAN KULIAH','Wah, akhirnya ketemu juga! Aku Dimas, teman kuliah Rio. Venue-nya keren banget.'],
+   ['DIMAS · TEMAN KULIAH','Aku dengar menu dessert di stand sebelah enak. Sepertinya kita harus coba nanti.'],
+   ['DIMAS · TEMAN KULIAH','Yuk, lanjut keliling. Jangan lupa sapa pengantin sebelum acara dimulai!']]}
+ ];
+ for(const npc of guestNPCs){
+   const person=makePerson(npc.x,npc.z,{skin:'#d7a57f',hair:'#30231d',outfit:npc.outfit,longHair:npc.name.includes('Maya')});
+   interactables.push({object:person,name:npc.name,type:'guest',lines:npc.lines});
+ }
+ // caterer stand on left
+ box(2.2,.12,1.1,'#f2e7d3',-7,1.15,-1);box(2.2,.85,.12,'#8b7658',-7,.7,-1.48);box(2.2,.85,.12,'#8b7658',-7,.7,-.52);
+ for(let i=0;i<4;i++)cylinder(.12,.12,.23,['#d5a16b','#d2c1a2','#9bba91'][i%3],-7.7+i*.45,1.32,-1,scene,10);
+ const standKeeper=makePerson(-7,0,{outfit:'#f1e6d2',hair:'#2d211b',formal:true,detail:'#c4a56c'});
+ interactables.push({object:standKeeper,name:'Penjaga Stand',type:'stand',lines:[
+  ['PENJAGA STAND','Selamat datang di garden party! Saya penjaga refreshment stand. Silakan mampir, ada minuman segar dan kudapan untuk para tamu.'],
+  ['PENJAGA STAND','Hari ini kami menyediakan infused water, mocktail bunga, dan aneka dessert mini. Semuanya disiapkan khusus untuk acara ini.'],
+  ['PENJAGA STAND','Silakan dinikmati! Setelah itu, Anda bisa menuju pelaminan untuk menyapa kedua mempelai.'] ]});
+ // couple at arch
+ const groom=makePerson(-.62,-7,{skin:'#f0c8a4',hair:'#30231d',outfit:'#f1e9d9',formal:true,shirt:'#fffaf0',legColor:'#24272b',shoeColor:'#191c1d',detail:'#c4a56c',boutonniere:true});
+ const bride=makePerson(.68,-7.15,{skin:'#f0c8a4',hair:'#30231d',outfit:'#f6ead6',longHair:true,dress:true,veil:true,tiara:true,detail:'#d9bd83',shoeColor:'#e5d4b7'});
+ couple=[groom,bride];
+ interactables.push({object:groom,name:'Rio & Dela',type:'couple',lines:[
+  ['RIO & DELA','Halo, '+state.guestName+'! Senang sekali kamu bisa datang ke pesta kami.'],
+  ['RIO','Kami ingin mengundangmu secara resmi untuk merayakan hari bahagia kami.'],
+  ['DELA','Terima kasih sudah menjadi bagian dari cerita kami. Yuk, buka undangan spesialmu!']
+ ]});
+ // sign board
+ box(1.7,1.1,.12,'#6c5034',4.4,1.6,-7.3);box(1.58,.96,.04,'#d9c7a4',4.4,1.6,-7.22);
+ // player
+ player=makePerson(0,7,{skin:state.skin,hair:state.hair,outfit:state.outfit,formal:true,detail:'#d7c6a2'});player.userData.isPlayer=true;
+ camera.position.set(0,4,13);clock=new THREE.Clock();
+}
+function rebuildPlayer(){if(player)scene.remove(player);player=makePerson(0,7,{skin:state.skin,hair:state.hair,outfit:state.outfit,formal:true,detail:'#d7c6a2'});player.userData.isPlayer=true}
+function updatePreview(){const a=$('avatarPreview');a.style.setProperty('--skin',state.skin);a.style.setProperty('--hair',state.hair);a.style.setProperty('--outfit',state.outfit)}
+function bindChoices(id,key){document.querySelectorAll('#'+id+' [data-value]').forEach(b=>b.addEventListener('click',()=>{state[key]=b.dataset.value;document.querySelectorAll('#'+id+' [data-value]').forEach(x=>x.setAttribute('aria-pressed','false'));b.setAttribute('aria-pressed','true');if(b.classList.contains('swatch'))b.setAttribute('aria-pressed','true');updatePreview()}))}
+bindChoices('skinChoices','skin');bindChoices('hairChoices','hair');bindChoices('outfitChoices','outfit');bindChoices('styleChoices','hairStyle');
+$('startBtn').onclick=()=>{$('startScreen').classList.add('hidden');$('creator').classList.remove('hidden');updatePreview()};
+$('backStart').onclick=()=>{$('creator').classList.add('hidden');$('startScreen').classList.remove('hidden')};
+$('enterGarden').onclick=()=>{if(!scene)createWorld();else rebuildPlayer();$('creator').classList.add('hidden');$('hud').classList.remove('hidden');gameStarted=true;toast('Selamat datang di garden party!');animate()};
+function showDialog(){
+ if(!gameStarted||!activeTarget)return;
+ gameStarted=false;$('dialog').classList.remove('hidden');dialogStep=0;
+ dialogLines=activeTarget.lines||[];
+ if(!dialogLines.length)dialogLines=[['TAMU','Halo! Selamat menikmati pesta.']];
+ setDialog();
+}
+function setDialog(){
+ const l=dialogLines[Math.min(dialogStep,dialogLines.length-1)];
+ $('speaker').textContent=l[0];$('dialogText').textContent=l[1];
+ $('dialogNext').textContent=dialogStep>=dialogLines.length-1?(activeTarget&&activeTarget.type==='couple'?'Buka Undangan ✦':'Akhiri Percakapan'):'Lanjutkan →';
+}
+$('dialogNext').onclick=()=>{
+ if(dialogStep<dialogLines.length-1){dialogStep++;setDialog();return}
+ $('dialog').classList.add('hidden');gameStarted=true;
+ if(activeTarget&&activeTarget.type==='couple'){$('invitation').classList.remove('hidden');makeQR();updateCountdown()}
+ else toast('Percakapan selesai. Silakan lanjut menjelajahi pesta!');
+};
+$('dialogSkip').onclick=()=>{
+ $('dialog').classList.add('hidden');gameStarted=true;
+ if(activeTarget&&activeTarget.type==='couple'){$('invitation').classList.remove('hidden');makeQR();updateCountdown()}
+};
+$('closeInvitation').onclick=()=>{$('invitation').classList.add('hidden');gameStarted=true};
+$('mapBtn').onclick=()=>toast('Lokasi demo: The Botanical Garden, Jakarta Selatan.');
+$('saveRsvp').onclick=()=>{if(!$('rsvp').value){toast('Pilih status kehadiran terlebih dahulu.');return}const record={guest:state.guestName,rsvp:$('rsvp').value,partySize:$('partySize').value,wish:$('wish').value,createdAt:new Date().toISOString()};localStorage.setItem('iola-rsvp-demo',JSON.stringify(record));toast('RSVP tersimpan di perangkat ini (demo).')};
+function updateCountdown(){const target=new Date('2027-01-09T16:00:00+07:00');const diff=Math.max(0,target-new Date());const vals=[Math.floor(diff/86400000),Math.floor(diff/3600000)%24,Math.floor(diff/60000)%60,Math.floor(diff/1000)%60];const labels=['HARI','JAM','MENIT','DETIK'];$('countdown').innerHTML=vals.map((v,i)=>`<div><b>${v}</b><span>${labels[i]}</span></div>`).join('')}
+setInterval(updateCountdown,1000);
+function makeQR(){
+ const host=$('qr');host.innerHTML='';
+ // Compact visual placeholder generated locally; not a scannable guest token.
+ const c=document.createElement('canvas');c.width=100;c.height=100;const ctx=c.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,100,100);ctx.fillStyle='#15251e';
+ // deterministic decorative matrix; production must use a real QR library + signed unique token
+ let seed=0;for(const ch of state.guestName)seed=(seed*31+ch.charCodeAt(0))>>>0;
+ function finder(x,y){ctx.fillRect(x,y,22,22);ctx.fillStyle='#fff';ctx.fillRect(x+4,y+4,14,14);ctx.fillStyle='#15251e';ctx.fillRect(x+7,y+7,8,8)}
+ finder(4,4);finder(74,4);finder(4,74);
+ for(let y=4;y<96;y+=4)for(let x=4;x<96;x+=4){seed=(seed*1664525+1013904223)>>>0;if(seed&0x80000000){if(!((x<28&&y<28)||(x>70&&y<28)||(x<28&&y>70)))ctx.fillRect(x,y,3,3)}}
+ host.appendChild(c);
+}
+function onKey(e){keys[e.key.toLowerCase()]=true;if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key))e.preventDefault()}
+function offKey(e){keys[e.key.toLowerCase()]=false}
+window.addEventListener('keydown',onKey,{passive:false});window.addEventListener('keyup',offKey);
+const joy=$('joystick'),stick=$('stick');let joyRect=null,joyActive=false;
+function joyMove(e){const r=joy.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;let dx=e.clientX-cx,dy=e.clientY-cy;const max=34,dist=Math.hypot(dx,dy);if(dist>max){dx=dx/dist*max;dy=dy/dist*max}moveInput.x=dx/max;moveInput.y=dy/max;stick.style.transform=`translate(${dx}px,${dy}px)`}
+joy.addEventListener('pointerdown',e=>{joyActive=true;joy.setPointerCapture(e.pointerId);joyMove(e)});
+joy.addEventListener('pointermove',e=>{if(joyActive)joyMove(e)});
+function joyEnd(){joyActive=false;moveInput={x:0,y:0};stick.style.transform='translate(0,0)'}
+joy.addEventListener('pointerup',joyEnd);joy.addEventListener('pointercancel',joyEnd);
+$('interact').onclick=()=>{if(activeTarget)showDialog();else toast('Dekati tamu, penjaga stand, atau pengantin untuk memulai percakapan.');};
+function animate(){if(!renderer)return;requestAnimationFrame(animate);if(!scene)return;const dt=Math.min(clock.getDelta(),.04);
+ if(gameStarted&&player){let x=moveInput.x,z=moveInput.y;if(keys.w||keys.arrowup)z-=1;if(keys.s||keys.arrowdown)z+=1;if(keys.a||keys.arrowleft)x-=1;if(keys.d||keys.arrowright)x+=1;const len=Math.hypot(x,z);if(len>1){x/=len;z/=len}const speed=3.5;player.position.x=THREE.MathUtils.clamp(player.position.x+x*speed*dt,-12,12);player.position.z=THREE.MathUtils.clamp(player.position.z+z*speed*dt,-12,12);if(len>.08)player.rotation.y=Math.atan2(x,z);const target=new THREE.Vector3(player.position.x,3.3,player.position.z+5.8);camera.position.lerp(target,1-Math.pow(.001,dt));camera.lookAt(player.position.x,1.1,player.position.z-1.7);
+ let nearest=null,nearestDist=999;
+ for(const target of interactables){const d=Math.hypot(player.position.x-target.object.position.x,player.position.z-target.object.position.z);if(d<2.7&&d<nearestDist){nearest=target;nearestDist=d}}
+ activeTarget=nearest;nearCouple=!!nearest&&nearest.type==='couple';
+ $('interact').style.opacity=nearest?'1':'.58';
+ $('interact').textContent=nearest?(nearest.type==='couple'?'♡ Sapa Pengantin':nearest.type==='stand'?'☕ Bicara dengan Penjaga':'💬 Bicara dengan Tamu'):'Cari seseorang untuk diajak bicara';
+ $('missionText').textContent=nearest?('Kamu dekat dengan '+nearest.name+'. Mulai percakapan!'):'Jelajahi taman, sapa tamu atau penjaga stand, lalu temui pengantin.';
+ $('hint').textContent=nearest?'Tekan tombol interaksi untuk memulai dialog':'Dekati tamu, penjaga stand, atau pengantin untuk berinteraksi';
+ }
+ // Procedural walk cycles for the player and NPCs: alternating legs and opposite arm swing.
+ for(const person of people){
+   const isPlayer=person===player;
+   let moving=false;
+   if(isPlayer){moving=gameStarted&&(Math.abs(moveInput.x)+Math.abs(moveInput.y)>0.12||keys.w||keys.a||keys.s||keys.d||keys.arrowup||keys.arrowdown||keys.arrowleft||keys.arrowright);}
+   else {moving=false;}
+   person.userData.walkPhase=(person.userData.walkPhase||0)+(moving?dt*9:dt*1.2);
+   const phase=person.userData.walkPhase;
+   const amp=moving?.48:.025;
+   person.userData.legPivots.forEach((p,i)=>{p.rotation.x=Math.sin(phase+(i*Math.PI))*amp;});
+   person.userData.armPivots.forEach((p,i)=>{p.rotation.x=-Math.sin(phase+(i*Math.PI))*amp*.7;});
+   if(moving){person.position.y=Math.abs(Math.sin(phase*2))*.025;}
+   else if(isPlayer){person.position.y=0;}
+ }
+ renderer.render(scene,camera)}
+window.addEventListener('resize',()=>{if(!camera||!renderer)return;camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setSize(innerWidth,innerHeight)});
+</script>
+<style>
+@media print{body{overflow:visible;background:white;color:#222}#game,#hud,#startScreen,#creator,#dialog,.actions,#toast{display:none!important}#invitation{display:block!important;position:static;background:white;padding:0;overflow:visible}.panel{max-height:none;overflow:visible;box-shadow:none;border:0;width:100%}.panel-inner{padding:0}.invite-layout{grid-template-columns:1fr 1fr}.invite-section{break-inside:avoid}}
+</style>
+</body>
+</html>
